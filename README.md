@@ -2,18 +2,25 @@
 
 **Shareable USDC payment links with on-chain verification on Arc Mainnet.**
 
+## Current safety status
+
+The hosted GitHub Pages domain displayed a MetaMask warning that the site may show phishing or wallet-draining behavior. Until this is reviewed and resolved with MetaMask, the published app is intentionally in **safe-demo mode**: wallet connection and live payment submission are disabled. Open the site with `?demo=1` to exercise the checkout interface using a placeholder address; this does not connect a wallet, submit a transaction, move funds, or prove on-chain payment.
+
+Do **not** bypass the warning by choosing “Connect anyway.” The alert alone does not establish why the domain was classified, so it needs investigation rather than guesswork.
+
 ArcCobro is a small, dependency-free web app for freelancers and small businesses. A recipient can create a payment request, share a URL, and let the payer send USDC directly to the recipient's wallet. After payment, the app checks the public Arc RPC receipt and requires a successful transaction with a USDC `Transfer` event matching the configured token interface, recipient, and exact amount.
 
 ## What works in this prototype
 
 - Responsive landing page and payment request creator.
 - Shareable payment URLs using query parameters (no database required for this MVP).
-- Browser wallet connection using an EIP-1193 provider such as MetaMask.
-- Adds/switches the wallet to Arc Mainnet (chain ID `5042`).
-- Submits a USDC ERC-20 `transfer` through the wallet; the payer authorizes the transaction.
-- Verifies the receipt and exact transfer event using Arc's public RPC.
-- Allows manual verification using a transaction hash.
-- Links verified transaction receipts to Arc Explorer.
+- Safe demo checkout with a placeholder recipient; it uses no wallet and sends no transaction.
+- Read-only receipt verification code is present, but must be tested separately.
+- Arc Mainnet configuration is documented below.
+
+## Temporarily disabled
+
+- Wallet connection and live payment submission are disabled in the published front end while the MetaMask website warning is investigated. Do not enable live payments until the alert has been reviewed and the transaction flow has been independently checked.
 
 ## Important limitations
 
@@ -31,8 +38,8 @@ This site is plain HTML/CSS/JavaScript and has no build step.
    ```bash
    python -m http.server 8000
    ```
-3. Open `http://localhost:8000` in a browser with a compatible EVM wallet.
-4. For a live payment test, use a wallet with Arc Mainnet enabled and enough USDC for both the transfer and gas. You can test the form and URL creation without connecting a wallet.
+3. Open `http://localhost:8000` in a browser.
+4. Use `http://localhost:8000/?demo=1` to test the checkout interface with no wallet and no funds. Do not enable live payment submission until the MetaMask warning is resolved.
 
 ## Publish for free
 

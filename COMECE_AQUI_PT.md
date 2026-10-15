@@ -1,37 +1,32 @@
-# ArcCobro — guia rápido
+# ArcCobro — guia rápido (modo seguro)
 
-## O que está pronto
+## Situação atual
 
-- Página em inglês, adequada para demonstrar o projeto a avaliadores internacionais.
-- Criação de links de cobrança compartilháveis.
-- Conexão com uma carteira EVM, como MetaMask, e troca para Arc Mainnet.
-- Envio de USDC direto para a carteira indicada pelo link.
-- Verificação do recibo na RPC pública da Arc e do evento `Transfer` com o destinatário e valor esperados.
-- Verificação manual usando hash da transação.
+O site publicado disparou um alerta de segurança da MetaMask ao tentar conectar a carteira. Por precaução, esta versão **desativa conexão de carteira e envio de pagamentos reais** até a classificação ser revisada. Não clique em “Connect anyway” e não use dinheiro real neste teste. O alerta pode precisar de investigação; não vamos presumir a causa.
 
-## Limitações importantes
+## O que você pode testar sem gastar
 
-Este é um MVP sem servidor e sem banco de dados. Os dados da cobrança estão na URL; alguém pode alterar o link, e as cobranças não ficam registradas em uma conta. A verificação compara a transferência com os dados do link aberto, mas isso não torna o link autêntico nem impede reutilização de comprovantes em solicitações idênticas. É uma prova de conceito, não um sistema de faturamento pronto para produção.
+- A página principal e o formulário de cobrança.
+- A criação e abertura de um link de checkout.
+- O botão de simulação, que não conecta uma carteira, não envia uma transação e não verifica pagamento on-chain.
 
-O site **não está publicado ainda** e o ZIP não cria um repositório público automaticamente. Nenhuma transferência foi enviada por mim. Ao usar a Mainnet, você pode mover dinheiro real: confira destinatário e valor na carteira e nunca compartilhe sua frase-semente.
+## Atualizar o repositório existente
 
-## Publicar rapidamente no GitHub Pages
+1. Extraia o ZIP `ArcCobro-Atualizacao-Segura-GitHub.zip`.
+2. Abra https://github.com/jmc-dev-br/arccobro.
+3. Clique em **Add file → Upload files**.
+4. Envie os arquivos `index.html`, `app.js`, `styles.css` e `README.md` extraídos do ZIP. Se o GitHub avisar que já existem, confirme a substituição. Também pode enviar este guia se desejar manter as instruções atualizadas.
+5. Clique em **Commit changes** e aguarde o GitHub Pages atualizar.
+6. Abra https://jmc-dev-br.github.io/arccobro/?demo=1
+7. Clique em **Create payment link**, depois **Open checkout** e, por fim, **Simulate demo — no funds**. A mensagem final confirma que nenhum dinheiro foi movimentado.
 
-1. Baixe e extraia `ArcCobro-Mainnet.zip`.
-2. No GitHub, crie um repositório **público** chamado `arccobro`.
-3. Envie os arquivos `index.html`, `styles.css`, `app.js`, `README.md` e este guia para a raiz do repositório (os arquivos do site precisam ficar no mesmo nível que `index.html`).
-4. Abra **Settings → Pages** no repositório. Em “Build and deployment”, escolha **Deploy from a branch**, selecione `main` e `/ (root)` e salve.
-5. Quando o GitHub Pages mostrar a URL, abra o site nela e teste a criação de link. Para verificar uma cobrança na Mainnet, use uma carteira compatível com saldo de USDC suficiente também para as taxas.
-6. Use o link público e o repositório como parte da inscrição, sem declarar funções que você ainda não testou.
+## O que não fazer
 
-Se você já tiver domínio próprio e acesso ao DNS/hospedagem, pode apontá-lo para o novo site. Não precisa apagar seu jogo para testar o ArcCobro: guarde uma cópia do projeto atual antes de substituir qualquer publicação. Eu não tenho acesso ao seu provedor de domínio/hospedagem por este pacote.
+- Não clique em “Connect anyway”.
+- Não insira frase de recuperação ou chave privada em nenhum site.
+- Não envie USDC para o endereço fictício da demonstração.
+- Não declare que pagamentos reais estão funcionando; estão desativados na versão segura.
 
-## Testar localmente no Windows
+## Investigar o alerta
 
-Com Python instalado, abra o PowerShell na pasta extraída e execute:
-
-```powershell
-py -m http.server 8000
-```
-
-Depois acesse `http://localhost:8000` no navegador. O site precisa ser servido por HTTP para que o fluxo de carteira e a chamada RPC sejam mais previsíveis.
+A MetaMask recomenda não conectar a carteira a sites que disparam esse alerta. Se você acredita que é uma classificação incorreta, a orientação oficial explica como reportar o domínio: https://support.metamask.io/stay-safe/safety-in-web3/deceptive-site-ahead-when-trying-to-connect-to-a-site/

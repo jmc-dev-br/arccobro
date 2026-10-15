@@ -11,6 +11,10 @@
     transferTopic: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
     transferSelector: "a9059cbb"
   };
+  // SAFETY HOLD: do not ask a wallet to connect or submit transactions while the hosted domain's MetaMask alert is being reviewed.
+  const SAFE_DEMO_ONLY = true;
+  const demoMode = new URLSearchParams(window.location.search).get("demo") === "1";
+  const DEMO_RECIPIENT = "0x1111111111111111111111111111111111111111";
   const $ = (selector) => document.querySelector(selector);
   const form = $("#charge-form");
   const toast = $("#toast");
@@ -78,6 +82,7 @@
     url.searchParams.set("d", request.description);
     url.searchParams.set("a", request.amount);
     url.searchParams.set("to", request.wallet);
+    if (request.demo || demoMode) url.searchParams.set("demo", "1");
     return url.toString();
   }
   async function rpc(method, params) {
@@ -159,7 +164,7 @@
     const id = (params.get("id") || "").trim();
     if (!description || description.length > 100 || !amountRegex.test(amount) || Number(amount) <= 0 || Number(amount) > 1000000 || !validAddress(wallet)) return null;
     try { amountToUnits(amount); } catch { return null; }
-    return { id, description, amount, wallet };
+    return { id, description, amount, wallet, demo: params.get("demo") === "1" };
   }
   function renderRequest(request) {
     charge = request;
@@ -170,7 +175,26 @@
     hero.classList.add("hidden");
     createView.classList.add("hidden");
     paymentView.classList.remove("hidden");
-    document.title = `Pay ${formatAmount(request.amount)} USDC — ArcCobro`;
+    document.title = `${request.demo ? "Demo · " : ""}Pay ${formatAmount(request.amount)} USDC — ArcCobro`;
+
+    const payButton = $("#pay-button");
+    const payLabel = payButton.querySelector("span");
+    if (SAFE_DEMO_ONLY && request.demo) {
+      payButton.disabled = false;
+      payLabel.textContent = "Simulate demo — no funds";
+      $("#payment-warning-title").textContent = "Safe demo only — no real funds";
+      $("#payment-warning-copy").textContent = "This is a simulated checkout. The button will not connect a wallet, submit a transaction, or verify an on-chain payment.";
+      setStatus($("#payment-status"), "DEMO MODE: No wallet is connected. No transaction has been sent and no funds have moved.");
+      $("#tx-hash").disabled = true;
+      $("#tx-hash").placeholder = "Disabled in demo mode";
+      $("#verify-button").disabled = true;
+      setStatus($("#verify-status"), "On-chain verification is not performed in demo mode.");
+    } else if (SAFE_DEMO_ONLY) {
+      payButton.disabled = true;
+      payLabel.textContent = "Live payments paused";
+      $("#payment-warning-title").textContent = "Live payments are paused";
+      $("#payment-warning-copy").textContent = "Do not connect a wallet or send funds while the MetaMask security alert is under review. Use the no-wallet demo on the home page.";
+    }
   }
 
   form.addEventListener("submit", event => {
@@ -182,7 +206,7 @@
       showToast("Add a description and a valid 0x wallet address."); return;
     }
     try { amountToUnits(amount); } catch (error) { showToast(error.message); return; }
-    charge = { id: makeId(), description, amount, wallet };
+    charge = { id: makeId(), description, amount, wallet, demo: demoMode };
     $("#preview-description").textContent = description;
     $("#preview-amount").textContent = formatAmount(amount);
     $("#preview-wallet").textContent = shorten(wallet);
@@ -194,6 +218,10 @@
   });
 
   $("#use-wallet").addEventListener("click", async () => {
+    if (SAFE_DEMO_ONLY) {
+      showToast("Wallet connection is paused while the MetaMask security alert is reviewed. Use the safe demo instead.");
+      return;
+    }
     const button = $("#use-wallet");
     button.disabled = true;
     try {
@@ -213,6 +241,15 @@
 
   $("#pay-button").addEventListener("click", async () => {
     if (!charge) return;
+    if (SAFE_DEMO_ONLY) {
+      if (charge.demo || demoMode) {
+        setStatus($("#payment-status"), "DEMO FINISHED. No wallet was connected, no transaction was submitted, and no funds moved. This is not an on-chain payment or verification.");
+        showToast("Demo finished — no funds moved.");
+      } else {
+        setStatus($("#payment-status"), "Live payment is paused while the MetaMask security warning is investigated.", "error");
+      }
+      return;
+    }
     const button = $("#pay-button");
     const original = button.innerHTML;
     button.disabled = true;
@@ -248,8 +285,16 @@
 
   const incomingRequest = currentRequest();
   if (incomingRequest) renderRequest(incomingRequest);
-  else if (window.location.search) {
-    const p = new URLSearchParams(window.location.search);
-    if (p.has("id") || p.has("d") || p.has("a") || p.has("to")) showToast("This payment link looks incomplete or invalid.");
+  else {
+    if (demoMode) {
+      descriptionInput.value = "ArcCobro safe demo";
+      amountInput.value = "1.00";
+      walletInput.value = DEMO_RECIPIENT;
+      showToast("Safe demo loaded. No wallet or funds are needed.");
+    }
+    if (window.location.search) {
+      const p = new URLSearchParams(window.location.search);
+      if (p.has("id") || p.has("d") || p.has("a") || p.has("to")) showToast("This payment link looks incomplete or invalid.");
+    }
   }
 })();
